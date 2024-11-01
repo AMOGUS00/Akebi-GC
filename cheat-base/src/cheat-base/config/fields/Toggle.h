@@ -28,13 +28,14 @@ namespace config
 			return value;
 		}
 
-		inline bool operator==(const Toggle<T>& rhs)
+		// Ensure const correctness and remove ambiguity
+		inline bool operator==(const Toggle<T>& rhs) const
 		{
 			return rhs.enabled == enabled && rhs.value == value;
 		}
 	};
 
-	// Okay, close your eyes and don't look at this mess. (Please)
+	// Specialized Field for Toggle
 	template<typename T>
 	class Field<Toggle<T>> : public internal::FieldBase<Toggle<T>>
 	{
@@ -45,7 +46,7 @@ namespace config
 
 		operator bool() const
 		{
-			return base::value();
+			return base::value().enabled; // Adjusted to access enabled properly
 		}
 
 		operator T&() const
@@ -77,7 +78,7 @@ namespace nlohmann
 			}
 
 			toggle.enabled = j["toggled"].get<uint32_t>();
-			config::converters::FromJson(toggle.value, j.contains("value") ? j["value"] : j["hotkey"]); // Support previously version
+			config::converters::FromJson(toggle.value, j.contains("value") ? j["value"] : j["hotkey"]); // Support previous version
 		}
 	};
 }
