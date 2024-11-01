@@ -2,6 +2,7 @@
 
 #include "FieldEntry.h"
 #include <cheat-base/config/converters.h>
+#include <type_traits>
 
 namespace config::internal
 {
@@ -15,6 +16,13 @@ namespace config::internal
 		{
 			enum { value = !std::is_same<decltype(std::declval<T>() == std::declval<Arg>()), No>::value };
 		};
+
+		// Helper to check if T has a member named 'value'
+		template<typename T, typename = void>
+		struct has_value_member : std::false_type {};
+
+		template<typename T>
+		struct has_value_member<T, std::void_t<decltype(std::declval<T>().value)>> : std::true_type {};
 	}
 
 	template<typename T>
@@ -32,8 +40,16 @@ namespace config::internal
 					return {};
 			}
 
-
-			return converters::ToJson(m_Value);
+			// Ensure T can be serialized to JSON
+			if constexpr (CHECK::has_value_member<T>::value)
+			{
+				return converters::ToJson(m_Value);
+			}
+			else
+			{
+				// Handle the case where T does not have a value member
+				static_assert(CHECK::has_value_member<T>::value, "T must have a value member or be serializable to JSON.");
+			}
 		}
 
 		void FromJson(const nlohmann::json& jObject) override
