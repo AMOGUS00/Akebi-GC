@@ -25,12 +25,12 @@ jobs:
       with:
         dotnet-version: '3.1.x'  # Specify .NET Core 3.1
 
+    - name: Check .NET Core versions
+      run: dotnet --list-runtimes  # List installed .NET runtimes to verify installation
+
     - name: Install MSBuild
       uses: microsoft/setup-msbuild@v1.0.2
 
-    # Optional, because current solution is executing custom command line after finishing build
-    # Repo does not affected
-    # Using hardcoded path and string
     - name: Remove Custom Build Steps
       shell: bash
       run: |
